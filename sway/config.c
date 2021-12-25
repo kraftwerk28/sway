@@ -226,6 +226,7 @@ static void config_defaults(struct sway_config *config) {
 
 	config->floating_mod = 0;
 	config->floating_mod_inverse = false;
+	config->mouse_resizing_mode = MOUSE_RESIZING_MODE_4_DIR;
 	config->dragging_key = BTN_LEFT;
 	config->resizing_key = BTN_RIGHT;
 
