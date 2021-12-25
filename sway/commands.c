@@ -76,6 +76,7 @@ static const struct cmd_handler handlers[] = {
 	{ "input", cmd_input },
 	{ "mode", cmd_mode },
 	{ "mouse_warping", cmd_mouse_warping },
+	{ "mouse_resizing_mode", cmd_mouse_resizing_mode },
 	{ "new_float", cmd_new_float },
 	{ "new_window", cmd_new_window },
 	{ "no_focus", cmd_no_focus },
