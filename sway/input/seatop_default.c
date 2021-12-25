@@ -117,6 +117,33 @@ enum wlr_edges find_resize_edge(struct sway_container *cont,
 	return edge;
 }
 
+static enum wlr_edges find_resize_edge_inside_container(struct sway_container *cont,
+		struct sway_cursor *cursor, enum mouse_resizing_mode resizing_mode) {
+	enum wlr_edges edge = WLR_EDGE_NONE;
+	if (resizing_mode == MOUSE_RESIZING_MODE_4_DIR) {
+		edge |= cursor->cursor->x > cont->pending.x + cont->pending.width / 2 ?
+			WLR_EDGE_RIGHT : WLR_EDGE_LEFT;
+		edge |= cursor->cursor->y > cont->pending.y + cont->pending.height / 2 ?
+			WLR_EDGE_BOTTOM : WLR_EDGE_TOP;
+	} else if (resizing_mode == MOUSE_RESIZING_MODE_8_DIR) {
+		if (cursor->cursor->x < cont->pending.x + cont->pending.width / 3) {
+			edge |= WLR_EDGE_LEFT;
+		}
+		if (cursor->cursor->x > cont->pending.x +
+				cont->pending.width - cont->pending.width / 3) {
+			edge |= WLR_EDGE_RIGHT;
+		}
+		if (cursor->cursor->y < cont->pending.y + cont->pending.height / 3) {
+			edge |= WLR_EDGE_TOP;
+		}
+		if (cursor->cursor->y > cont->pending.y +
+				cont->pending.height - cont->pending.height / 3) {
+			edge |= WLR_EDGE_BOTTOM;
+		}
+	}
+	return edge;
+}
+
 /**
  * Return the mouse binding which matches modifier, click location, release,
  * and pressed button state, otherwise return null.
@@ -413,12 +440,10 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 	// Handle tiling resize via mod
 	if (cont && !is_floating_or_child && mod_pressed && mod_resize_btn_pressed &&
 			state == WL_POINTER_BUTTON_STATE_PRESSED) {
-		edge = 0;
-		edge |= cursor->cursor->x > cont->pending.x + cont->pending.width / 2 ?
-			WLR_EDGE_RIGHT : WLR_EDGE_LEFT;
-		edge |= cursor->cursor->y > cont->pending.y + cont->pending.height / 2 ?
-			WLR_EDGE_BOTTOM : WLR_EDGE_TOP;
-
+		edge = find_resize_edge_inside_container(cont, cursor, config->mouse_resizing_mode);
+		if (edge == WLR_EDGE_NONE) {
+			return;
+		}
 		const char *image = NULL;
 		if (edge == (WLR_EDGE_LEFT | WLR_EDGE_TOP)) {
 			image = "nw-resize";
@@ -476,11 +501,11 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 		// Via mod+click
 		if (mod_resize_btn_pressed) {
 			struct sway_container *floater = container_toplevel_ancestor(cont);
-			edge = 0;
-			edge |= cursor->cursor->x > floater->pending.x + floater->pending.width / 2 ?
-				WLR_EDGE_RIGHT : WLR_EDGE_LEFT;
-			edge |= cursor->cursor->y > floater->pending.y + floater->pending.height / 2 ?
-				WLR_EDGE_BOTTOM : WLR_EDGE_TOP;
+			edge = find_resize_edge_inside_container(cont, cursor,
+					config->mouse_resizing_mode);
+			if (edge == WLR_EDGE_NONE) {
+				return;
+			}
 			seat_set_focus_container(seat, floater);
 			seatop_begin_resize_floating(seat, floater, edge);
 			return;
