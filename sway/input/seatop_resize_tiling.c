@@ -1,4 +1,5 @@
 #include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/util/edges.h>
 #include "sway/commands.h"
 #include "sway/desktop/transaction.h"
@@ -161,5 +162,9 @@ void seatop_begin_resize_tiling(struct sway_seat *seat,
 	seat->seatop_data = e;
 
 	transaction_commit_dirty();
+
+	const char *image = edge == WLR_EDGE_NONE ?
+		"se-resize" : wlr_xcursor_get_resize_name(edge);
+	cursor_set_image(seat->cursor, image, NULL);
 	wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
 }
