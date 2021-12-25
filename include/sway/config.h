@@ -468,6 +468,11 @@ enum xwayland_mode {
 	XWAYLAND_MODE_IMMEDIATE,
 };
 
+enum mouse_resizing_mode {
+	MOUSE_RESIZING_MODE_4_DIR,
+	MOUSE_RESIZING_MODE_8_DIR,
+};
+
 /**
  * The configuration struct. The result of loading a config file.
  */
@@ -490,6 +495,7 @@ struct sway_config {
 	struct bar_config *current_bar;
 	uint32_t floating_mod;
 	bool floating_mod_inverse;
+	enum mouse_resizing_mode mouse_resizing_mode;
 	uint32_t dragging_key;
 	uint32_t resizing_key;
 	char *floating_scroll_up_cmd;
