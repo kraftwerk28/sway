@@ -108,6 +108,33 @@ enum wlr_edges find_resize_edge(struct sway_container *cont,
 	return edge;
 }
 
+static enum wlr_edges find_resize_edge_inside_container(struct sway_container *cont,
+		struct sway_cursor *cursor, enum mouse_resizing_mode resizing_mode) {
+	enum wlr_edges edge = WLR_EDGE_NONE;
+	if (resizing_mode == MOUSE_RESIZING_MODE_4_DIR) {
+		edge |= cursor->cursor->x > cont->pending.x + cont->pending.width / 2 ?
+			WLR_EDGE_RIGHT : WLR_EDGE_LEFT;
+		edge |= cursor->cursor->y > cont->pending.y + cont->pending.height / 2 ?
+			WLR_EDGE_BOTTOM : WLR_EDGE_TOP;
+	} else if (resizing_mode == MOUSE_RESIZING_MODE_8_DIR) {
+		if (cursor->cursor->x < cont->pending.x + cont->pending.width / 3) {
+			edge |= WLR_EDGE_LEFT;
+		}
+		if (cursor->cursor->x > cont->pending.x +
+				cont->pending.width - cont->pending.width / 3) {
+			edge |= WLR_EDGE_RIGHT;
+		}
+		if (cursor->cursor->y < cont->pending.y + cont->pending.height / 3) {
+			edge |= WLR_EDGE_TOP;
+		}
+		if (cursor->cursor->y > cont->pending.y +
+				cont->pending.height - cont->pending.height / 3) {
+			edge |= WLR_EDGE_BOTTOM;
+		}
+	}
+	return edge;
+}
+
 /**
  * Return the mouse binding which matches modifier, click location, release,
  * and pressed button state, otherwise return null.
@@ -404,23 +431,11 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 		uint32_t btn_resize = config->floating_mod_inverse ?
 			BTN_LEFT : BTN_RIGHT;
 		if (button == btn_resize) {
-			edge = 0;
-			edge |= cursor->cursor->x > cont->pending.x + cont->pending.width / 2 ?
-				WLR_EDGE_RIGHT : WLR_EDGE_LEFT;
-			edge |= cursor->cursor->y > cont->pending.y + cont->pending.height / 2 ?
-				WLR_EDGE_BOTTOM : WLR_EDGE_TOP;
-
-			const char *image = NULL;
-			if (edge == (WLR_EDGE_LEFT | WLR_EDGE_TOP)) {
-				image = "nw-resize";
-			} else if (edge == (WLR_EDGE_TOP | WLR_EDGE_RIGHT)) {
-				image = "ne-resize";
-			} else if (edge == (WLR_EDGE_RIGHT | WLR_EDGE_BOTTOM)) {
-				image = "se-resize";
-			} else if (edge == (WLR_EDGE_BOTTOM | WLR_EDGE_LEFT)) {
-				image = "sw-resize";
+			edge = find_resize_edge_inside_container(cont, cursor,
+					config->mouse_resizing_mode);
+			if (edge == WLR_EDGE_NONE) {
+				return;
 			}
-			cursor_set_image(seat->cursor, image, NULL);
 			seat_set_focus_container(seat, cont);
 			seatop_begin_resize_tiling(seat, cont, edge);
 			return;
@@ -453,11 +468,11 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 			BTN_LEFT : BTN_RIGHT;
 		if (mod_pressed && button == btn_resize) {
 			struct sway_container *floater = container_toplevel_ancestor(cont);
-			edge = 0;
-			edge |= cursor->cursor->x > floater->pending.x + floater->pending.width / 2 ?
-				WLR_EDGE_RIGHT : WLR_EDGE_LEFT;
-			edge |= cursor->cursor->y > floater->pending.y + floater->pending.height / 2 ?
-				WLR_EDGE_BOTTOM : WLR_EDGE_TOP;
+			edge = find_resize_edge_inside_container(cont, cursor,
+					config->mouse_resizing_mode);
+			if (edge == 0) {
+				return;
+			}
 			seatop_begin_resize_floating(seat, floater, edge);
 			return;
 		}
