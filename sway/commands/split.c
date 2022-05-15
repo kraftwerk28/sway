@@ -59,15 +59,21 @@ struct cmd_results *cmd_split(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	if (strcasecmp(argv[0], "v") == 0 || strcasecmp(argv[0], "vertical") == 0) {
+
+	if (strcasecmp(argv[0], "v") == 0 || strcasecmp(argv[0], "vertical") == 0 ||
+			strcasecmp(argv[0], "bottom") == 0) {
 		return do_split(L_VERT);
 	} else if (strcasecmp(argv[0], "h") == 0 ||
-			strcasecmp(argv[0], "horizontal") == 0) {
+			strcasecmp(argv[0], "horizontal") == 0 ||
+			strcasecmp(argv[0], "right") == 0) {
 		return do_split(L_HORIZ);
+	} else if (strcasecmp(argv[0], "top") == 0) {
+		return do_split(L_VERT2);
+	} else if (strcasecmp(argv[0], "left") == 0) {
+		return do_split(L_HORIZ2);
 	} else if (strcasecmp(argv[0], "t") == 0 ||
 			strcasecmp(argv[0], "toggle") == 0) {
 		struct sway_container *focused = config->handler_context.container;
-
 		if (focused && container_parent_layout(focused) == L_VERT) {
 			return do_split(L_HORIZ);
 		} else {
@@ -91,12 +97,28 @@ struct cmd_results *cmd_splitv(int argc, char **argv) {
 	return do_split(L_VERT);
 }
 
+struct cmd_results *cmd_splitvt(int argc, char **argv) {
+	struct cmd_results *error = NULL;
+	if ((error = checkarg(argc, "splitvt", EXPECTED_EQUAL_TO, 0))) {
+		return error;
+	}
+	return do_split(L_VERT2);
+}
+
 struct cmd_results *cmd_splith(int argc, char **argv) {
 	struct cmd_results *error = NULL;
 	if ((error = checkarg(argc, "splith", EXPECTED_EQUAL_TO, 0))) {
 		return error;
 	}
 	return do_split(L_HORIZ);
+}
+
+struct cmd_results *cmd_splithl(int argc, char **argv) {
+	struct cmd_results *error = NULL;
+	if ((error = checkarg(argc, "splithl", EXPECTED_EQUAL_TO, 0))) {
+		return error;
+	}
+	return do_split(L_HORIZ2);
 }
 
 struct cmd_results *cmd_splitt(int argc, char **argv) {

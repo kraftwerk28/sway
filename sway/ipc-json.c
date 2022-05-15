@@ -43,6 +43,10 @@ static const char *ipc_json_layout_description(enum sway_container_layout l) {
 		return "splitv";
 	case L_HORIZ:
 		return "splith";
+	case L_VERT2:
+		return "splitvt";
+	case L_HORIZ2:
+		return "splithl";
 	case L_TABBED:
 		return "tabbed";
 	case L_STACKED:

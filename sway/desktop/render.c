@@ -368,8 +368,29 @@ static void render_view(struct sway_output *output, pixman_region32_t *damage,
 	float color[4];
 	struct sway_container_state *state = &con->current;
 
+	list_t *siblings = container_get_current_siblings(con);
+	enum sway_container_layout layout =
+		container_current_parent_layout(con);
+
+	if (state->border_top) {
+		if (!container_is_current_floating(con) && siblings->length == 1 && layout == L_VERT2) {
+			memcpy(&color, colors->indicator, sizeof(float) * 4);
+			premultiply_alpha(color, con->alpha);
+			box.x = floor(state->x);
+			box.y = floor(state->y);
+			box.width = state->width;
+			box.height = state->border_thickness;
+			scale_box(&box, output_scale);
+			render_rect(output, damage, &box, color);
+		}
+	}
+
 	if (state->border_left) {
-		memcpy(&color, colors->child_border, sizeof(float) * 4);
+		if (!container_is_current_floating(con) && siblings->length == 1 && layout == L_HORIZ2) {
+			memcpy(&color, colors->indicator, sizeof(float) * 4);
+		} else {
+			memcpy(&color, colors->child_border, sizeof(float) * 4);
+		}
 		premultiply_alpha(color, con->alpha);
 		box.x = floor(state->x);
 		box.y = floor(state->content_y);
@@ -378,10 +399,6 @@ static void render_view(struct sway_output *output, pixman_region32_t *damage,
 		scale_box(&box, output_scale);
 		render_rect(output, damage, &box, color);
 	}
-
-	list_t *siblings = container_get_current_siblings(con);
-	enum sway_container_layout layout =
-		container_current_parent_layout(con);
 
 	if (state->border_right) {
 		if (!container_is_current_floating(con) && siblings->length == 1 && layout == L_HORIZ) {
@@ -412,6 +429,36 @@ static void render_view(struct sway_output *output, pixman_region32_t *damage,
 		scale_box(&box, output_scale);
 		render_rect(output, damage, &box, color);
 	}
+
+	// if (state->border_left) {
+	// 	if (!container_is_current_floating(con) && siblings->length == 1 && layout == L_HORIZ2) {
+	// 		memcpy(&color, colors->indicator, sizeof(float) * 4);
+	// 	} else {
+	// 		memcpy(&color, colors->child_border, sizeof(float) * 4);
+	// 	}
+	// 	premultiply_alpha(color, con->alpha);
+	// 	box.x = floor(state->content_x);
+	// 	box.y = floor(state->content_y);
+	// 	box.width = state->border_thickness;
+	// 	box.height = state->content_height;
+	// 	scale_box(&box, output_scale);
+	// 	render_rect(output, damage, &box, color);
+	// }
+
+	// if (state->border_top) {
+	// 	if (!container_is_current_floating(con) && siblings->length == 1 && layout == L_VERT2) {
+	// 		memcpy(&color, colors->indicator, sizeof(float) * 4);
+	// 	} else {
+	// 		memcpy(&color, colors->child_border, sizeof(float) * 4);
+	// 	}
+	// 	premultiply_alpha(color, con->alpha);
+	// 	box.x = floor(state->content_x);
+	// 	box.y = floor(state->content_y);
+	// 	box.width = state->content_width;
+	// 	box.height = state->border_thickness;
+	// 	scale_box(&box, output_scale);
+	// 	render_rect(output, damage, &box, color);
+	// }
 }
 
 /**
@@ -916,6 +963,8 @@ static void render_containers(struct sway_output *output,
 	case L_NONE:
 	case L_HORIZ:
 	case L_VERT:
+	case L_HORIZ2:
+	case L_VERT2:
 		render_containers_linear(output, damage, parent);
 		break;
 	case L_STACKED:

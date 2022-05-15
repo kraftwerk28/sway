@@ -212,9 +212,11 @@ static void arrange_children(list_t *children,
 	// Calculate x, y, width and height of children
 	switch (layout) {
 	case L_HORIZ:
+	case L_HORIZ2:
 		apply_horiz_layout(children, parent);
 		break;
 	case L_VERT:
+	case L_VERT2:
 		apply_vert_layout(children, parent);
 		break;
 	case L_TABBED:

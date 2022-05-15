@@ -375,6 +375,8 @@ struct sway_container *tiling_container_at(struct sway_node *parent,
 	switch (node_get_layout(parent)) {
 	case L_HORIZ:
 	case L_VERT:
+	case L_HORIZ2:
+	case L_VERT2:
 		return container_at_linear(parent, lx, ly, surface, sx, sy);
 	case L_TABBED:
 		return container_at_tabbed(parent, lx, ly, surface, sx, sy);
@@ -613,6 +615,12 @@ size_t container_build_representation(enum sway_container_layout layout,
 		break;
 	case L_HORIZ:
 		lenient_strcat(buffer, "H[");
+		break;
+	case L_VERT2:
+		lenient_strcat(buffer, "V2[");
+		break;
+	case L_HORIZ2:
+		lenient_strcat(buffer, "H2[");
 		break;
 	case L_TABBED:
 		lenient_strcat(buffer, "T[");
