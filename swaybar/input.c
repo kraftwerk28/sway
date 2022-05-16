@@ -214,8 +214,8 @@ static void workspace_next(struct swaybar *bar, struct swaybar_output *output,
 
 		// Since we're asking Sway to switch to 'new', it should become visible.
 		// Marking it visible right now allows calling workspace_next in a loop.
-		new->visible = true;
 		active->visible = false;
+		new->visible = true;
 	}
 }
 
